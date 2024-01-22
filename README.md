@@ -124,7 +124,7 @@ Now we can build a rust toolchain using `.x`.
 
 ```shell
 ./x build library
-````
+```
 
 And optionally test that the core library was correctly compiled:
 
@@ -309,3 +309,4 @@ Memory usage on idle: 18 Gig.
 Max memory usage, 32 cores parallel 23 Gig.
 
 From this we can conclude that the rust compiler builds fast, and effectively makes use of crate level parallelism, bottlenecked only by the linear optimization phase of LLVM. Further tweaking of the rust compiler build process can be done, using a faster big chunk allocator, avoiding std library re-building, use of faster linker, etc. but really - I think we can live with a less than 3 minute clean build, and 4 second iterative/incremental build process.
+````
