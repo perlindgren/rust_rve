@@ -4,7 +4,7 @@
 
 LLVM Release schedule (here)[https://discourse.llvm.org/t/llvm-18-release-schedule/76175]
 
-LLVM attributes.
+LLVM attributes for LLVM17.
 
 ```
 llc -march=riscv32 -mattr=help
@@ -23,9 +23,79 @@ So it seems that the `e` feature is available already on LLVM 17. But they lied,
 
 So let's try LLVM18. It also claims to implement codegen for the `e` feature, perhaps it even implements it :), at least there is no explicit error generated.
 
+So clone the [llvm-project](https://github.com/llvm/llvm-project), and crate the build scripts, e.g., by:
+
+```shell
+cmake -S llvm -B build -G Ninja -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DLLVM_USE_LINKER=lld
+```
+
+(This will configure a production version of LLVM18 with clang frontend and lld linker, the former is likely not required but a nice to have.)
+
+Next step is to build the compiler (without installing it).
+
+```shell
+ninja -C build
+```
+
+To check that generated binary is executable, run:
+
+```shell
+./build/bin/clang --version
+```
+
+The expected results is something like:
+
+```shell
+clang version 18.0.0git (https://github.com/llvm/llvm-project.git 5f41cef58f72ebe950cc9777a8e29d1d28e543d4)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /data/riscv/llvm-project/./build/bin
+```
+
 ## Building Rust toolchain from source with LLVM18
 
-First install LLVM from source, then generate a `config.toml` in the root of the `rustc` tree. The path `/data/riscv/llvm-project/build/bin/` should point to the `llvm-config` used to detect LLVM features.
+Clone the `rust` source [here](https://github.com/rust-lang/rust).
+
+First install LLVM from source (see above). For our use we want to support both the `rv32imc` and `rv32imce`. The `rv32imce` is currently NOT in the rust compiler, so we need to add `compiler/rustc_target/src/spec/targets/riscv32imce_unknown_none_elf.rs`.
+
+```rust
+use crate::spec::{Cc, LinkerFlavor, Lld, PanicStrategy, RelocModel, Target, TargetOptions};
+
+pub fn target() -> Target {
+    Target {
+        data_layout: "e-m:e-p:32:32-i64:64-n32-S128".into(),
+        llvm_target: "riscv32".into(),
+        pointer_width: 32,
+        arch: "riscv32".into(),
+
+        options: TargetOptions {
+            linker_flavor: LinkerFlavor::Gnu(Cc::No, Lld::Yes),
+            linker: Some("rust-lld".into()),
+            cpu: "generic-rv32".into(),
+            max_atomic_width: Some(32),
+            atomic_cas: false,
+            features: "+m,+c,+e,+forced-atomics".into(),
+            panic_strategy: PanicStrategy::Abort,
+            relocation_model: RelocModel::Static,
+            emit_debug_gdb_scripts: false,
+            eh_frame_header: false,
+            ..Default::default()
+        },
+    }
+}
+```
+
+And update the `compiler/rustc_target/src/spec/mod.rs` accordingly:
+
+```rust
+...
+    ("riscv32imc-unknown-none-elf", riscv32imc_unknown_none_elf),
+    ("riscv32imce-unknown-none-elf", riscv32imce_unknown_none_elf), // < this one
+    ("riscv32imc-esp-espidf", riscv32imc_esp_espidf),
+...
+```
+
+Now we can configure and build rust from source. To this end we need a `config.toml` in the root of the `rust` tree. The path `/data/riscv/llvm-project/build/bin/` should point to the `llvm-config` used to detect LLVM features.
 
 ````toml
 # Includes one of the default files in src/bootstrap/defaults
@@ -48,11 +118,21 @@ target = [
     "riscv32imce-unknown-none-elf",
 ]```
 
+Now we can build a rust toolchain using `.x`.
+
 ```shell
 ./x build library
 ````
 
-Now we can make these available to `rustup` by:
+And optionally test that the core library was correctly compiled:
+
+```shell
+./x test library/core
+```
+
+(Some of the tests were ignored, not sure why...)
+
+Now make the toolchain(s) available to `rustup` by:
 
 ```shell
 rustup toolchain link stage0 build/host/stage0-sysroot # beta compiler + stage0 std
@@ -60,13 +140,30 @@ rustup toolchain link stage1 build/host/stage1
 rustup toolchain link stage2 build/host/stage2
 ```
 
+It is the `stage2` that is the production compiler. (You may use a different name than `stage2`, if you want, e.g. `rustup toolchain link rust_llvm18 build/host/stage2
+`).
+
 And we can check the corresponding LLVM version:
 
 ```shell
 rustc +stage2 -vV
 ```
 
+You should see something like:
+
+```shell
+rustc 1.77.0-nightly (ef71f1047 2024-01-21)
+binary: rustc
+commit-hash: ef71f1047e04438181d7cb925a833e2ada6ab390
+commit-date: 2024-01-21
+host: x86_64-unknown-linux-gnu
+release: 1.77.0-nightly
+LLVM version: 18.0.0
+```
+
 ## Setting up custom target
+
+Alternatively (in stead of building native support IN the compiler), one can build a custom target.
 
 ```shell
 rustc -Z unstable-options --print target-spec-json --target riscv32imc-unknown-none-elf

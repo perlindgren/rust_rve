@@ -1,5 +1,7 @@
 {
     "cSpell.ignoreWords": [
+        "espidf",
+        "imce",
         "mattr",
         "riscv",
         "rustc",
