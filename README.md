@@ -118,7 +118,8 @@ target = [
     "x86_64-unknown-linux-gnu",
     "riscv32imc-unknown-none-elf",
     "riscv32imce-unknown-none-elf",
-]```
+]
+```
 
 Now we can build a rust toolchain using `.x`.
 
