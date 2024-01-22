@@ -1,0 +1,29 @@
+
+#
+# riscv32imc-unknown-none-elf
+
+[target.riscv32imc-unknown-none-elf]
+# using gcc (gnu tools for linking)
+rustflags = [
+    "-C",
+    "linker=riscv32-unknown-elf-gcc", # <- maybe too old
+    "-C",
+    "link-arg=-Wl,-Tlink.x",
+    "-C",
+    "link-arg=-nostartfiles",
+]
+
+[target.riscv32imce-unknown-none-elf]
+# using gcc (gnu tools for linking)
+rustflags = [
+    "-C",
+    "linker=riscv32-unknown-elf-gcc", # <- maybe too old
+    "-C",
+    "link-arg=-Wl,-Tlink.x",
+    "-C",
+    "link-arg=-nostartfiles",
+]
+
+[build]
+target = "riscv32imc-unknown-none-elf"
+# target = "riscv32imce-unknown-none-elf"
