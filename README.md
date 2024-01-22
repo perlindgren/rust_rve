@@ -99,7 +99,7 @@ And update the `compiler/rustc_target/src/spec/mod.rs` accordingly:
 
 Now we can configure and build rust from source. To this end we need a `config.toml` in the root of the `rust` tree. The path `/data/riscv/llvm-project/build/bin/` should point to the `llvm-config` used to detect LLVM features.
 
-````toml
+```toml
 # Includes one of the default files in src/bootstrap/defaults
 profile = "dist"
 change-id = 102579
@@ -310,4 +310,7 @@ Memory usage on idle: 18 Gig.
 Max memory usage, 32 cores parallel 23 Gig.
 
 From this we can conclude that the rust compiler builds fast, and effectively makes use of crate level parallelism, bottlenecked only by the linear optimization phase of LLVM. Further tweaking of the rust compiler build process can be done, using a faster big chunk allocator, avoiding std library re-building, use of faster linker, etc. but really - I think we can live with a less than 3 minute clean build, and 4 second iterative/incremental build process.
-````
+
+```
+
+```
