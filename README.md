@@ -85,6 +85,8 @@ pub fn target() -> Target {
 }
 ```
 
+(The only difference to the `imc` is the `+e` for the `E` extension.)
+
 And update the `compiler/rustc_target/src/spec/mod.rs` accordingly:
 
 ```rust
@@ -140,8 +142,7 @@ rustup toolchain link stage1 build/host/stage1
 rustup toolchain link stage2 build/host/stage2
 ```
 
-It is the `stage2` that is the production compiler. (You may use a different name than `stage2`, if you want, e.g. `rustup toolchain link rust_llvm18 build/host/stage2
-`).
+It is the `stage2` that is the production compiler. (You may use a different name than `stage2`, if you want, e.g. `rustup toolchain link rust_llvm18 build/host/stage2`).
 
 And we can check the corresponding LLVM version:
 
@@ -215,8 +216,96 @@ We want something like this:
 }
 ```
 
+The only difference here is that we add `+e`, to support the `E` extension.
+
 ## Testing the riscv32e target.
 
-```shell
-/data/riscv/llvm-project/build/bin/llvm-objdump target/riscv32imce-unknown-none-elf/debug/custom_toolchain -d > main.s
+Now we can build our binary.
+
+In this repo root run:
+
 ```
+rustup override set rust_llvm18
+```
+
+(Where `rust_llvm18` is the name of the linked stage2 compiler).
+
+Notice, `rust-toolchain`/`toolchain.toml` does not seem to work, perhaps some additional step is needed for full toolchain integration. We are running the _stock_ `rustup` application which identifies our toolchain as `custom` which might have some implications besides that `components` and `target` commands are not supported.
+
+```shell
+cargo build
+```
+
+```shell
+/data/riscv/llvm-project/build/bin/llvm-objdump target/riscv32imce-unknown-none-elf/debug/rust_rve -d > main.s
+```
+
+(It seems that you can use a stock (e.g., LLVM16 `llvm-objdump` as well, nothing -E specific in the generated assembly.)
+
+```shell
+llvm-objdump target/riscv32imce-unknown-none-elf/debug/rust_rve -d > main_stock_objdump.s
+```
+
+For the compilation we use the `gcc` linker, see `.cargo/config.toml`.
+
+```toml
+[target.riscv32imce-unknown-none-elf]
+# using gcc (gnu tools for linking)
+rustflags = [
+    "-C",
+    "linker=riscv32-unknown-elf-gcc", # <- maybe too old
+    "-C",
+    "link-arg=-Wl,-Tlink.x",
+    "-C",
+    "link-arg=-nostartfiles",
+]
+```
+
+To let our `rust_llvm18` build a target on the fly we can use:
+
+```shell
+cargo build -Z build-std=core --target riscv32imce-unknown-none-elf.json
+```
+
+This allows us to play around with the target without building the stage2 compiler.
+
+## Status
+
+This shows that it is possible to generate a custom toolchain based an LLVM18. It passes all tests in `library/core` (> 4000).
+
+## Expected Build times
+
+LLVM takes a while due to C++ being painstakingly slow.
+
+Clean build of the complete stage 0, bootstrap compiler (334 crates), 52 seconds.
+
+Clean build of stage 0 std library -> stage 1 compiler, 16 seconds.
+
+Clean build of stage 1 compiler producing a production stage 2 compiler, 1 min 15 seconds.
+
+Total wall clock time less 2 min 44 seconds.
+
+Linux `time` command:
+
+```shell
+________________________________________________________
+Executed in  164.10 secs    fish           external
+   usr time   43.43 mins  254.00 micros   43.43 mins
+   sys time    1.21 mins  149.00 micros    1.21 mins
+```
+
+Incremental re-compilation of stage 0, 1 and 2, depends on deltas, but typically something like:
+
+```shell
+________________________________________________________
+Executed in    3.40 secs    fish           external
+   usr time    1.64 secs    0.00 micros    1.64 secs
+   sys time    1.69 secs  394.00 micros    1.69 secs
+```
+
+All measurements on a 7950x3d with 32 gig ram running arch linux 6.7. Measures taken in a non controlled environment (running commodity applications like firefox, chrome, brave with 100s of active tabs, signal, telegram, discord, vscode.)
+
+Memory usage on idle: 18 Gig.
+Max memory usage, 32 cores parallel 23 Gig.
+
+From this we can conclude that the rust compiler builds fast, and effectively makes use of crate level parallelism, bottlenecked only by the linear optimization phase of LLVM. Further tweaking of the rust compiler build process can be done, using a faster big chunk allocator, avoiding std library re-building, use of faster linker, etc. but really - I think we can live with a less than 3 minute clean build, and 4 second iterative/incremental build process.

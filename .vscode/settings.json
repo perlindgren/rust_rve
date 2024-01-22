@@ -1,8 +1,11 @@
 {
     "cSpell.ignoreWords": [
+        "Tlink",
         "espidf",
         "imce",
         "mattr",
+        "nostartfiles",
+        "objdump",
         "riscv",
         "rustc",
         "rustup",
