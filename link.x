@@ -1,16 +1,15 @@
 /* Memory layout of the rv32e-rtic */
-/* 1K = 1 KiBi = 1024 bytes */
 
 MEMORY
 {
-  FLASH : ORIGIN = 0x1000, LENGTH = 0x1000
+  FLASH : ORIGIN = 0x1000, LENGTH = 0x0800
   RAM : ORIGIN = 0x2000, LENGTH = 0x0800
 }
 
 /* The entry point is the reset handler */
-ENTRY(Reset);
+/* ENTRY(Reset); */
 
-EXTERN(RESET_VECTOR);
+/* EXTERN(RESET_VECTOR); */
 
 SECTIONS
 {
@@ -21,12 +20,12 @@ SECTIONS
 
     /* Second entry: reset vector */
     KEEP(*(.vector_table.reset_vector));
-  } > FLASH
-
-  .text :
-  {
-    *(.text .text.*);
-  } > FLASH
-
+    . = ALIGN(8);
+  } > FLASH 
   
+  .text : ALIGN(32)
+  {
+    *(.text .text.*); 
+  } > FLASH
+
 }

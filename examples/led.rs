@@ -7,22 +7,27 @@ const OUTPUT_REG_ADDR:usize = 0x00030008;
 
 #[inline(never)]
 fn blink() {
-    for _ in 0..1000_1000 {
+    
         write_u32(OUTPUT_REG_ADDR, 1);
-        delay(1000_000);
+        delay(2);
         write_u32(OUTPUT_REG_ADDR, 0);
-        delay(1000_000);
-    }
+        delay(2);
+    
 }
 
 
 // our entry point()
 #[no_mangle]
-pub unsafe extern "C" fn Reset() -> ! {
+pub unsafe extern "C" fn entry() -> ! {
     loop {
-        blink();
+        write_u32(OUTPUT_REG_ADDR, 1);
+        delay(2);
+        write_u32(OUTPUT_REG_ADDR, 0);
+        delay(2);
     }
 }
+
+
 
 
 
