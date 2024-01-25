@@ -1,30 +1,26 @@
 #![no_main]
 #![no_std]
 
-use rust_rve::{delay, write_u32};
+use rust_rve::{asm_delay, write_u32};
 
 const OUTPUT_REG_ADDR:usize = 0x00030008;
 
 #[inline(never)]
-fn blink() {
-    
+fn blinky() {
+    loop {
         write_u32(OUTPUT_REG_ADDR, 1);
-        delay(2);
+        asm_delay(200_000);
         write_u32(OUTPUT_REG_ADDR, 0);
-        delay(2);
+        asm_delay(200_000);
+    }
     
 }
 
-
-// our entry point()
+// our entry point
 #[no_mangle]
 pub unsafe extern "C" fn entry() -> ! {
-    loop {
-        write_u32(OUTPUT_REG_ADDR, 1);
-        delay(2);
-        write_u32(OUTPUT_REG_ADDR, 0);
-        delay(2);
-    }
+    blinky();
+    loop {}
 }
 
 

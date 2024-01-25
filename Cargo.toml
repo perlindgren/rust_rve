@@ -15,4 +15,5 @@ overflow-checks = false
 
 [profile.release]
 panic = "abort"
+overflow-checks = false
 debug = true

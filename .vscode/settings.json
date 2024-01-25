@@ -2,6 +2,9 @@
     "cSpell.ignoreWords": [
         "IMEM",
         "Tlink",
+        "addi",
+        "auipc",
+        "blinky",
         "espidf",
         "imce",
         "mattr",

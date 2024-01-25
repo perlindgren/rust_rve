@@ -21,11 +21,13 @@ SECTIONS
     /* Second entry: reset vector */
     KEEP(*(.vector_table.reset_vector));
     . = ALIGN(8);
+    LONG(1234)
   } > FLASH 
   
   .text : ALIGN(32)
   {
-    *(.text .text.*); 
+    *(.text .text.*);
+    . = ALIGN(8);
+    LONG(1234)
   } > FLASH
-
 }
