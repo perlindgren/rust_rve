@@ -23,7 +23,7 @@ So it seems that the `e` feature is available already on LLVM 17. But they lied,
 
 So let's try LLVM18. It also claims to implement codegen for the `e` feature, perhaps it even implements it :), at least there is no explicit error generated.
 
-So clone the [llvm-project](https://github.com/llvm/llvm-project), and crate the build scripts, e.g., by:
+So clone the [llvm-project](https://github.com/llvm/llvm-project) (the 'release/18.x' branch is suggested), and create the build scripts, e.g., by:
 
 ```shell
 cmake -S llvm -B build -G Ninja -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DLLVM_USE_LINKER=lld
