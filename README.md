@@ -2,7 +2,7 @@
 
 ## LLVM
 
-LLVM Release schedule (here)[https://discourse.llvm.org/t/llvm-18-release-schedule/76175]
+LLVM Release schedule [here](https://discourse.llvm.org/t/llvm-18-release-schedule/76175)
 
 LLVM attributes for LLVM17.
 
