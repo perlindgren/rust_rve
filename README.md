@@ -234,17 +234,17 @@ rustup override set rust_llvm18
 Notice, `rust-toolchain`/`toolchain.toml` does not seem to work, perhaps some additional step is needed for full toolchain integration. We are running the _stock_ `rustup` application which identifies our toolchain as `custom` which might have some implications besides that `components` and `target` commands are not supported.
 
 ```shell
-cargo build
+cargo build --example riscv32e_abi
 ```
 
 ```shell
-/data/riscv/llvm-project/build/bin/llvm-objdump target/riscv32imce-unknown-none-elf/debug/rust_rve -d > main.s
+/data/riscv/llvm-project/build/bin/llvm-objdump target/riscv32imce-unknown-none-elf/debug/examples/rv32e_abi -d > main.s
 ```
 
 (It seems that you can use a stock (e.g., LLVM16 `llvm-objdump` as well, nothing -E specific in the generated assembly.)
 
 ```shell
-llvm-objdump target/riscv32imce-unknown-none-elf/debug/rust_rve -d > main_stock_objdump.s
+llvm-objdump target/riscv32imce-unknown-none-elf/debug/examples/rv32e_abi -d > main_stock_objdump.s
 ```
 
 For the compilation we use the `gcc` linker, see `.cargo/config.toml`.
