@@ -13,7 +13,7 @@ rustflags = [
     "link-arg=-nostartfiles",
 ]
 
-[target.riscv32imce-unknown-none-elf]
+[target.riscv32emc-unknown-none-elf]
 # using gcc (gnu tools for linking)
 rustflags = [
     "-C",
@@ -26,7 +26,7 @@ rustflags = [
 
 # We cannot currently use llvm18 lld, maybe Rust specific patches are required?
 
-# [target.riscv32imce-unknown-none-elf]
+# [target.riscv32emc-unknown-none-elf]
 # # using gcc (gnu tools for linking)
 # rustflags = [
 #     "-C",
@@ -38,4 +38,4 @@ rustflags = [
 
 [build]
 # target = "riscv32imc-unknown-none-elf"
-target = "riscv32imce-unknown-none-elf"
+target = "riscv32emc-unknown-none-elf"

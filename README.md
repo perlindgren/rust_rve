@@ -2,7 +2,7 @@
 
 ## LLVM
 
-LLVM Release schedule (here)[https://discourse.llvm.org/t/llvm-18-release-schedule/76175]
+LLVM Release schedule [here](https://discourse.llvm.org/t/llvm-18-release-schedule/76175)
 
 LLVM attributes for LLVM17.
 
@@ -56,7 +56,7 @@ InstalledDir: /data/riscv/llvm-project/./build/bin
 
 Clone the `rust` source [here](https://github.com/rust-lang/rust).
 
-First install LLVM from source (see above). For our use we want to support both the `rv32imc` and `rv32imce`. The `rv32imce` is currently NOT in the rust compiler, so we need to add `compiler/rustc_target/src/spec/targets/riscv32imce_unknown_none_elf.rs`.
+First install LLVM from source (see above). For our use we want to support both the `rv32imc` and `rv32emc`. The `rv32emc` is currently NOT in the rust compiler, so we need to add `compiler/rustc_target/src/spec/targets/riscv32emc_unknown_none_elf.rs`.
 
 ```rust
 use crate::spec::{Cc, LinkerFlavor, Lld, PanicStrategy, RelocModel, Target, TargetOptions};
@@ -92,7 +92,7 @@ And update the `compiler/rustc_target/src/spec/mod.rs` accordingly:
 ```rust
 ...
     ("riscv32imc-unknown-none-elf", riscv32imc_unknown_none_elf),
-    ("riscv32imce-unknown-none-elf", riscv32imce_unknown_none_elf), // < this one
+    ("riscv32emc-unknown-none-elf", riscv32emc_unknown_none_elf), // < this one
     ("riscv32imc-esp-espidf", riscv32imc_esp_espidf),
 ...
 ```
@@ -110,14 +110,14 @@ llvm-config = "/data/riscv/llvm-project/build/bin/llvm-config"
 [target.riscv32imc-unknown-none-elf]
 llvm-config = "/data/riscv/llvm-project/build/bin/llvm-config"
 
-[target.riscv32imce-unknown-none-elf]
+[target.riscv32emc-unknown-none-elf]
 llvm-config = "/data/riscv/llvm-project/build/bin/llvm-config"
 
 [build]
 target = [
     "x86_64-unknown-linux-gnu",
     "riscv32imc-unknown-none-elf",
-    "riscv32imce-unknown-none-elf",
+    "riscv32emc-unknown-none-elf",
 ]
 ```
 
@@ -219,7 +219,7 @@ We want something like this:
 
 The only difference here is that we add `+e`, to support the `E` extension.
 
-## Testing the riscv32e target.
+## Testing the riscv32e target
 
 Now we can build our binary.
 
@@ -238,19 +238,19 @@ cargo build
 ```
 
 ```shell
-/data/riscv/llvm-project/build/bin/llvm-objdump target/riscv32imce-unknown-none-elf/debug/rust_rve -d > main.s
+/data/riscv/llvm-project/build/bin/llvm-objdump target/riscv32emc-unknown-none-elf/debug/rust_rve -d > main.s
 ```
 
 (It seems that you can use a stock (e.g., LLVM16 `llvm-objdump` as well, nothing -E specific in the generated assembly.)
 
 ```shell
-llvm-objdump target/riscv32imce-unknown-none-elf/debug/rust_rve -d > main_stock_objdump.s
+llvm-objdump target/riscv32emc-unknown-none-elf/debug/rust_rve -d > main_stock_objdump.s
 ```
 
 For the compilation we use the `gcc` linker, see `.cargo/config.toml`.
 
 ```toml
-[target.riscv32imce-unknown-none-elf]
+[target.riscv32emc-unknown-none-elf]
 # using gcc (gnu tools for linking)
 rustflags = [
     "-C",
@@ -265,7 +265,7 @@ rustflags = [
 To let our `rust_llvm18` build a target on the fly we can use:
 
 ```shell
-cargo build -Z build-std=core --target riscv32imce-unknown-none-elf.json
+cargo build -Z build-std=core --target riscv32emc-unknown-none-elf.json
 ```
 
 This allows us to play around with the target without building the stage2 compiler.
